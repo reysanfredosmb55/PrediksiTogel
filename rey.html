@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard PK Prediksi Togel Otomatis</title>
+    <!-- Tailwind CSS CDN untuk Tampilan Modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans">
+
+    <!-- Header -->
+    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-chart-line text-amber-400 text-2xl"></i>
+                <h1 class="text-xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
+                    PK PREDIKSI DASHBOARD REY
+                </h1>
+            </div>
+            <div id="realtimeDate" class="text-sm font-semibold text-amber-300 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-700">
+                <!-- Tanggal Otomatis Muncul Di Sini -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Content Area -->
+    <main class="max-w-7xl mx-auto px-4 py-6">
+        
+        <!-- Controls -->
+        <section class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-xl mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Search Input -->
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1 font-semibold uppercase">Cari Pasaran</label>
+                    <div class="relative">
+                        <input type="text" id="searchInput" oninput="filterPasaran()" placeholder="Ketik nama pasaran..." 
+                            class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 pl-10 text-sm focus:outline-none focus:border-amber-500 text-slate-200">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-slate-500"></i>
+                    </div>
+                </div>
+
+                <!-- Dropdown Select -->
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1 font-semibold uppercase">Pilih Pasaran</label>
+                    <select id="pasaranSelect" onchange="generatePredictions()" 
+                        class="w-full bg-slate-900 border border-slate-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-amber-500 text-slate-200">
+                    </select>
+                </div>
+
+                <!-- Refresh Button -->
+                <div class="flex items-end">
+                    <button onclick="generatePredictions()" 
+                        class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate"></i> Acak Ulang Angka
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Dynamic Grid Pasaran -->
+        <section id="dashboardGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Tampilan Card Diproduksi Otomatis via JS -->
+        </section>
+
+    </main>
+
+    <script>
+        // List Daftar Pasaran Sesuai Permintaan
+        const daftarPasaran = [
+            "KENTUCKY MIDDAY", "FLORIDA MIDDAY", "TOTO MACAU PAGI", "BANGKOK 0130", 
+            "NEW YORK MIDDAY", "CAROLINA DAY", "BRUNEI 02", "OREGON 03", 
+            "OREGON 06", "CALIFORNIA", "FLORIDA EVENING", "OREGON 09", 
+            "BANGKOK 0930", "NEW YORK EVENING", "KENTUCKY EVENING", "CAROLINA EVENING", 
+            "CHELSEA 11", "TOTO CAMBODIA", "OREGON 12", "POIPET 12", 
+            "BULLSEYE", "TOTO MACAU SIANG", "SYDNEY", "BRUNEI 14", 
+            "JAKARTA 1400", "TOTO MALI 1530", "CHELSEA 15", "POIPET 15", 
+            "HUAHIN 1630", "TOTO MACAU SORE", "SINGAPORE", "MAGNUM4D", 
+            "TOTO MACAU MALAM 1", "POIPET 19", "TOTO MALI 2030", "CHELSEA 21", 
+            "NEVADA", "BRUNEI 21", "TOTO MACAU MALAM 2", "POIPET 22", 
+            "HONGKONG", "PREDIKSI TOTO MACAU 5D SORE", "PREDIKSI TOTO MACAU 5D MALAM", 
+            "TOTO MACAU MALAM 3", "JAKARTA 2330", "TOTO MALI 2330", 
+            "PREDIKSI KINGKONG 4D SORE", "KINGKONG 4D MALAM", "HOKIDRAW"
+        ];
+
+        const daftarShio = ["TIKUS", "KERBAU", "HARIMAU", "KELINCI", "NAGA", "ULAR", "KUDA", "KAMBING", "MONYET", "AYAM", "ANJING", "BABI"];
+
+        // Format Tanggal Indonesia Otomatis Realtime Hari Ini
+        function getFormattedDate() {
+            const today = new Date();
+            const months = [
+                "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+                "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            ];
+            return `${today.getDate()} ${months[today.getMonth()]} ${today.getFullYear()}`;
+        }
+
+        // Utility: Acak angka acak
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        // Utility: Buat string digit acak panjang N
+        function getRandomDigits(length) {
+            let res = "";
+            for (let i = 0; i < length; i++) {
+                res += Math.floor(Math.random() * 10);
+            }
+            return res;
+        }
+
+        // Generator Prediksi Lengkap Sesuai Format
+        function createPrediksiData(namaPasaran) {
+            const tanggalFormatted = getFormattedDate();
+
+            // BBFS 7 Digit
+            const bbfs = getRandomDigits(7);
+            
+            // Angka Main 5 Digit
+            const angkaMain = getRandomDigits(5);
+            
+            // 5D (2 Pasang)
+            const d5 = `${getRandomDigits(5)} ${getRandomDigits(5)}`;
+            
+            // 4D (4 Pasang)
+            const d4 = `${getRandomDigits(4)} ${getRandomDigits(4)} ${getRandomDigits(4)} ${getRandomDigits(4)}`;
+            
+            // 3D (4 Pasang)
+            const d3 = `${getRandomDigits(3)} ${getRandomDigits(3)} ${getRandomDigits(3)} ${getRandomDigits(3)}`;
+            
+            // 2D BB (10 Pasang)
+            let set2d = new Set();
+            while(set2d.size < 10) {
+                let num = getRandomInt(0, 99);
+                set2d.add(num < 10 ? '0' + num : '' + num);
+            }
+            const d2bb = Array.from(set2d).join(' ');
+
+            // Colok Bebas (2 Angka)
+            const cb = `${getRandomInt(0, 9)} / ${getRandomInt(0, 9)}`;
+
+            // Colok Bebas 2D (3 Pasang)
+            const cb2d = `${getRandomInt(0,9)}${getRandomInt(0,9)} / ${getRandomInt(0,9)}${getRandomInt(0,9)} / ${getRandomInt(0,9)}${getRandomInt(0,9)}`;
+
+            // Shio (3 Random)
+            let shioShuffled = [...daftarShio].sort(() => 0.5 - Math.random());
+            const shio = `${shioShuffled[0]} / ${shioShuffled[1]} / ${shioShuffled[2]}`;
+
+            // Twin (3 Pasang)
+            const t1 = getRandomInt(0, 9);
+            const t2 = getRandomInt(0, 9);
+            const t3 = getRandomInt(0, 9);
+            const twin = `${t1}${t1} / ${t2}${t2} / ${t3}${t3}`;
+
+            return {
+                pasaran: namaPasaran,
+                tanggal: tanggalFormatted,
+                bbfs: bbfs,
+                angkaMain: angkaMain,
+                d5: d5,
+                d4: d4,
+                d3: d3,
+                d2bb: d2bb,
+                cb: cb,
+                cb2d: cb2d,
+                shio: shio,
+                twin: twin
+            };
+        }
+
+        let currentPredictions = [];
+
+        // Inisialisasi Select Dropdown
+        function initDropdown() {
+            const select = document.getElementById('pasaranSelect');
+            select.innerHTML = `<option value="ALL">-- SEMUA PASARAN --</option>`;
+            daftarPasaran.forEach(pasaran => {
+                const opt = document.createElement('option');
+                opt.value = pasaran;
+                opt.textContent = pasaran;
+                select.appendChild(opt);
+            });
+        }
+
+        // Tampilkan Prediksi ke Layar
+        function renderDashboard(data) {
+            const grid = document.getElementById('dashboardGrid');
+            grid.innerHTML = '';
+
+            if (data.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">Pasaran tidak ditemukan.</div>`;
+                return;
+            }
+
+            data.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-800 border border-slate-700 hover:border-amber-500/50 rounded-xl p-5 shadow-lg flex flex-col justify-between";
+                
+                card.innerHTML = `
+                    <div>
+                        <!-- Card Header -->
+                        <div class="flex justify-between items-center border-b border-slate-700/60 pb-3 mb-3">
+                            <h3 class="font-bold text-amber-400 text-sm tracking-wide uppercase">PREDIKSI ${item.pasaran}</h3>
+                            <button onclick="copyPrediksi(${index})" title="Salin Teks Prediksi" 
+                                class="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 px-3 py-1.5 rounded-lg text-xs font-semibold transition border border-amber-500/30 flex items-center gap-1.5">
+                                <i class="fa-regular fa-copy"></i> Salin
+                            </button>
+                        </div>
+
+                        <!-- Card Content Display (Sesuai Format Teks) -->
+                        <div class="font-mono text-xs space-y-1.5 text-slate-300 bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+                            <div><span class="text-slate-400 font-sans">Tanggal:</span> <span class="text-slate-100 font-bold">${item.tanggal}</span></div>
+                            <div><span class="text-slate-400 font-sans">BBFS kuat :</span> <span class="text-amber-300 font-bold">${item.bbfs}</span></div>
+                            <div><span class="text-slate-400 font-sans">Angka Main :</span> <span class="text-emerald-400">${item.angkaMain}</span></div>
+                            ${item.pasaran.includes("5D") ? `<div><span class="text-slate-400 font-sans">5D :</span> <span>${item.d5}</span></div>` : ''}
+                            <div><span class="text-slate-400 font-sans">4D :</span> <span>${item.d4}</span></div>
+                            <div><span class="text-slate-400 font-sans">3D :</span> <span>${item.d3}</span></div>
+                            <div><span class="text-slate-400 font-sans">2D (BB) :</span> <span class="text-orange-300">${item.d2bb}</span></div>
+                            <div><span class="text-slate-400 font-sans">COLOK BEBAS :</span> <span>${item.cb}</span></div>
+                            <div><span class="text-slate-400 font-sans">COLOK BEBAS 2D :</span> <span>${item.cb2d}</span></div>
+                            <div><span class="text-slate-400 font-sans">SHIO :</span> <span class="text-purple-300">${item.shio}</span></div>
+                            <div><span class="text-slate-400 font-sans">TWIN :</span> <span>${item.twin}</span></div>
+                            <div class="text-[10px] text-slate-500 pt-1 italic font-sans">Biasakan UPS - UTAMAKAN PREDIKSI SENDIRI</div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Hasilkan Data Prediksi Baru
+        function generatePredictions() {
+            const selectedPasaran = document.getElementById('pasaranSelect').value;
+            
+            if (selectedPasaran === "ALL") {
+                currentPredictions = daftarPasaran.map(p => createPrediksiData(p));
+            } else {
+                currentPredictions = [createPrediksiData(selectedPasaran)];
+            }
+            
+            filterPasaran();
+        }
+
+        // Filter Pencarian Pasaran
+        function filterPasaran() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = currentPredictions.filter(item => 
+                item.pasaran.toLowerCase().includes(keyword)
+            );
+            renderDashboard(filtered);
+        }
+
+        // Salin Teks Format Lengkap ke Clipboard
+        function copyPrediksi(index) {
+            const p = currentPredictions[index];
+            
+            let textToCopy = `PREDIKSI ${p.pasaran}\n` +
+                `${p.tanggal}\n` +
+                `BBFS kuat : ${p.bbfs}\n` +
+                `Angka Main : ${p.angkaMain}\n`;
+
+            if(p.pasaran.includes("5D")) {
+                textToCopy += `5D : ${p.d5}\n`;
+            }
+
+            textToCopy += `4D : ${p.d4}\n` +
+                `3D : ${p.d3}\n` +
+                `2D (BB) : ${p.d2bb}\n` +
+                `COLOK BEBAS : ${p.cb}\n` +
+                `COLOK BEBAS 2D : ${p.cb2d}\n` +
+                `SHIO : ${p.shio}\n` +
+                `TWIN : ${p.twin}\n` +
+                `Biasakan UPS - UTAMAKAN PREDIKSI SENDIRI`;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert(`Prediksi ${p.pasaran} berhasil disalin dalam format teks!`);
+            }).catch(err => {
+                console.error('Gagal menyalin:', err);
+            });
+        }
+
+        // Eksekusi Saat Halaman Dimuat
+        window.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('realtimeDate').innerHTML = `<i class="fa-regular fa-calendar-alt mr-1.5"></i> ${getFormattedDate()}`;
+            initDropdown();
+            generatePredictions();
+        });
+    </script>
+</body>
+</html>
